@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Bet History{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Betting History</h2>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Bets</h6>
+                    <h3>{{ stats.total_bets }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Win Rate</h6>
+                    <h3 class="text-success">{{ stats.win_rate }}%</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Staked</h6>
+                    <h3>${{ stats.total_staked }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h6 class="text-muted">Profit/Loss</h6>
+                    <h3 class="{% if stats.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        ${{ stats.profit }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter Form -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    {{ filter_form.status }}
+                </div>
+                <div class="col-md-3">
+                    {{ filter_form.bet_type }}
+                </div>
+                <div class="col-md-2">
+                    {{ filter_form.date_from }}
+                </div>
+                <div class="col-md-2">
+                    {{ filter_form.date_to }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Bets Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Your Bets</h5>
+        </div>
+        <div class="card-body">
+            {% if bets %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Bet On</th>
+                                <th>Stake</th>
+                                <th>Odds</th>
+                                <th>Potential Win</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bet in bets %}
+                            <tr>
+                                <td>{{ bet.event }}</td>
+                                <td>{{ bet.get_bet_type_display }}</td>
+                                <td>${{ bet.stake }}</td>
+                                <td>{{ bet.odds }}</td>
+                                <td>${{ bet.potential_payout }}</td>
+                                <td>
+                                    {% if bet.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif bet.status == 'won' %}
+                                        <span class="badge bg-success">Won</span>
+                                    {% elif bet.status == 'lost' %}
+                                        <span class="badge bg-danger">Lost</span>
+                                    {% elif bet.status == 'cancelled' %}
+                                        <span class="badge bg-secondary">Cancelled</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ bet.placed_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'bets:detail' bet.id %}" class="btn btn-sm btn-info">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <p class="mb-0">You haven't placed any bets yet.</p>
+                    <a href="{% url 'events:list' %}" class="btn btn-primary mt-2">Browse Events</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

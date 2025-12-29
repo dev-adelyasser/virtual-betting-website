@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Bet Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h2>Bet Details</h2>
+            
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>Bet #{{ bet.id }}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Event Information -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2">Event</h5>
+                        <p><strong>{{ bet.event }}</strong></p>
+                        <p class="text-muted">{{ bet.event.start_time }}</p>
+                    </div>
+                    
+                    <!-- Bet Information -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2">Bet Information</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <p><strong>Bet On:</strong> {{ bet.get_bet_type_display }}</p>
+                                <p><strong>Stake:</strong> ${{ bet.stake }}</p>
+                                <p><strong>Odds:</strong> {{ bet.odds }}</p>
+                            </div>
+                            <div class="col-6">
+                                <p><strong>Potential Payout:</strong> ${{ bet.potential_payout }}</p>
+                                <p><strong>Potential Profit:</strong> ${{ bet.calculate_profit }}</p>
+                                <p><strong>Status:</strong> 
+                                    {% if bet.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif bet.status == 'won' %}
+                                        <span class="badge bg-success">Won</span>
+                                    {% elif bet.status == 'lost' %}
+                                        <span class="badge bg-danger">Lost</span>
+                                    {% elif bet.status == 'cancelled' %}
+                                        <span class="badge bg-secondary">Cancelled</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Timestamps -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2">Timeline</h5>
+                        <p><strong>Placed At:</strong> {{ bet.placed_at }}</p>
+                        {% if bet.resolved_at %}
+                            <p><strong>Resolved At:</strong> {{ bet.resolved_at }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="mt-4">
+                        {% if bet.status == 'pending' and can_cancel %}
+                            <form method="post" action="{% url 'bets:cancel_bet' bet.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this bet?')">
+                                    Cancel Bet & Refund
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        <a href="{% url 'bets:history' %}" class="btn btn-secondary">
+                            Back to History
+                        </a>
+                    </div>
+                    
+                    {% if bet.status == 'won' %}
+                        <div class="alert alert-success mt-3">
+                            <h5>Congratulations! 🎉</h5>
+                            <p class="mb-0">You won ${{ bet.potential_payout }}! The amount has been credited to your wallet.</p>
+                        </div>
+                    {% elif bet.status == 'lost' %}
+                        <div class="alert alert-danger mt-3">
+                            <p class="mb-0">Unfortunately, this bet did not win. Better luck next time!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

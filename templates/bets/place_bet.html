@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Place Bet - {{ event }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Place Your Bet</h2>
+            
+            <!-- Event Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4>{{ event }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>{{ event.team_a }}</strong> vs <strong>{{ event.team_b }}</strong></p>
+                            <p><small>Start Time: {{ event.start_time }}</small></p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <p><strong>Status:</strong> <span class="badge bg-info">{{ event.get_status_display }}</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Odds Display -->
+                    <div class="row mt-3">
+                        <div class="col-4 text-center">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>{{ event.team_a }} Win</h6>
+                                    <h4>{{ event.odds_team_a }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>Draw</h6>
+                                    <h4>{{ event.odds_draw }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-center">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>{{ event.team_b }} Win</h6>
+                                    <h4>{{ event.odds_team_b }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Betting Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Place Your Bet</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="bet-form">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            {{ form.bet_type.label_tag }}
+                            {{ form.bet_type }}
+                            {% if form.bet_type.errors %}
+                                <div class="text-danger">{{ form.bet_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.stake.label_tag }}
+                            {{ form.stake }}
+                            <small class="form-text text-muted">Minimum: $1.00 | Maximum: $10,000.00</small>
+                            {% if form.stake.errors %}
+                                <div class="text-danger">{{ form.stake.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Potential Payout Display -->
+                        <div class="alert alert-info" id="payout-display">
+                            <h6>Potential Payout: <span id="payout-amount">$0.00</span></h6>
+                            <p class="mb-0">Profit: <span id="profit-amount">$0.00</span></p>
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            Place Bet
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar with Wallet Info -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5>Your Wallet</h5>
+                </div>
+                <div class="card-body">
+                    <h3>${{ wallet.balance }}</h3>
+                    <p class="text-muted mb-0">Available Balance</p>
+                    <hr>
+                    <a href="{% url 'wallet:dashboard' %}" class="btn btn-outline-success btn-sm">
+                        View Wallet
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6>Betting Tips</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="small">
+                        <li>Only bet what you can afford to lose</li>
+                        <li>Check odds carefully before placing</li>
+                        <li>Bets cannot be changed once placed</li>
+                        <li>Payouts are automatic when event ends</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Real-time payout calculation
+document.addEventListener('DOMContentLoaded', function() {
+    const betTypeSelect = document.getElementById('bet-type-select');
+    const stakeInput = document.getElementById('stake-input');
+    const payoutAmount = document.getElementById('payout-amount');
+    const profitAmount = document.getElementById('profit-amount');
+    
+    function calculatePayout() {
+        const betType = betTypeSelect.value;
+        const stake = parseFloat(stakeInput.value) || 0;
+        
+        if (!betType || stake === 0) {
+            payoutAmount.textContent = '$0.00';
+            profitAmount.textContent = '$0.00';
+            return;
+        }
+        
+        // Get odds from selected option text
+        const selectedOption = betTypeSelect.options[betTypeSelect.selectedIndex];
+        const oddsMatch = selectedOption.text.match(/Odds: ([\d.]+)/);
+        const odds = oddsMatch ? parseFloat(oddsMatch[1]) : 1.0;
+        
+        const payout = stake * odds;
+        const profit = payout - stake;
+        
+        payoutAmount.textContent = '$' + payout.toFixed(2);
+        profitAmount.textContent = '$' + profit.toFixed(2);
+    }
+    
+    betTypeSelect.addEventListener('change', calculatePayout);
+    stakeInput.addEventListener('input', calculatePayout);
+});
+</script>
+{% endblock %}
