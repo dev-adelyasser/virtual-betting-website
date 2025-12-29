@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from apps.accounts.models import CustomUser
 from django.core.validators import MinValueValidator
 from django.db.models import F
 from decimal import Decimal
@@ -10,7 +10,7 @@ class Wallet(models.Model):
     """
     User's wallet to manage virtual currency for betting
     """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wallet')
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='wallet')
     balance = models.DecimalField(
         max_digits=10, 
         decimal_places=2, 
