@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from .models import Bet
 
 
-@admin.ModelAdmin
+@admin.register(Bet)  
 class BetAdmin(admin.ModelAdmin):
     """
     Admin interface for managing bets
@@ -133,5 +133,3 @@ class BetAdmin(admin.ModelAdmin):
     mark_as_cancelled.short_description = "Cancel selected bets"
 
 
-# Register the model with the custom admin
-admin.site.register(Bet, BetAdmin)
